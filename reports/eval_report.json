@@ -1,0 +1,108 @@
+{
+  "generated_at": "2026-09-03T15:33:11",
+  "build": "local",
+  "total_cases": 12,
+  "passed": 11,
+  "failed": 1,
+  "accuracy": 0.9167,
+  "threshold": 0.85,
+  "verdict": "PASS",
+  "results": [
+    {
+      "id": "C-01",
+      "text": "The invoice raised for March shows an overcharge of 40 hours.",
+      "expected": "billing_dispute",
+      "predicted": "billing_dispute",
+      "confidence": 0.9,
+      "pass": true
+    },
+    {
+      "id": "C-02",
+      "text": "We have not received the refund against the duplicate payment yet.",
+      "expected": "billing_dispute",
+      "predicted": "billing_dispute",
+      "confidence": 0.9,
+      "pass": true
+    },
+    {
+      "id": "C-03",
+      "text": "The client is unhappy about the numbers on the last statement.",
+      "expected": "billing_dispute",
+      "predicted": "other",
+      "confidence": 0.3,
+      "pass": false
+    },
+    {
+      "id": "C-04",
+      "text": "Please confirm whether the additional module falls inside the agreed scope.",
+      "expected": "scope_change",
+      "predicted": "scope_change",
+      "confidence": 0.9,
+      "pass": true
+    },
+    {
+      "id": "C-05",
+      "text": "We are raising a change request for two extra dashboards.",
+      "expected": "scope_change",
+      "predicted": "scope_change",
+      "confidence": 0.7,
+      "pass": true
+    },
+    {
+      "id": "C-06",
+      "text": "The extra deliverable was never part of the original scope of work.",
+      "expected": "scope_change",
+      "predicted": "scope_change",
+      "confidence": 0.9,
+      "pass": true
+    },
+    {
+      "id": "C-07",
+      "text": "Where exactly is the personal data of our employees being stored?",
+      "expected": "data_privacy",
+      "predicted": "data_privacy",
+      "confidence": 0.7,
+      "pass": true
+    },
+    {
+      "id": "C-08",
+      "text": "Our legal team needs written confirmation of data residency in India.",
+      "expected": "data_privacy",
+      "predicted": "data_privacy",
+      "confidence": 0.7,
+      "pass": true
+    },
+    {
+      "id": "C-09",
+      "text": "Has explicit consent been captured before processing this PII?",
+      "expected": "data_privacy",
+      "predicted": "data_privacy",
+      "confidence": 0.9,
+      "pass": true
+    },
+    {
+      "id": "C-10",
+      "text": "The integration work has slipped and we are now behind schedule.",
+      "expected": "timeline_risk",
+      "predicted": "timeline_risk",
+      "confidence": 0.9,
+      "pass": true
+    },
+    {
+      "id": "C-11",
+      "text": "We may have to postpone the go-live because of the current delay.",
+      "expected": "timeline_risk",
+      "predicted": "timeline_risk",
+      "confidence": 0.9,
+      "pass": true
+    },
+    {
+      "id": "C-12",
+      "text": "The UAT deadline cannot be met with the present staffing.",
+      "expected": "timeline_risk",
+      "predicted": "timeline_risk",
+      "confidence": 0.7,
+      "pass": true
+    }
+  ]
+}

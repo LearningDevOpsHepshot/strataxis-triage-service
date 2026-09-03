@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Evaluation Report - Build local</title>
+<style>
+body{font-family:Calibri,Arial,sans-serif;margin:24px;color:#142B4B}
+h1{color:#142B4B} .v{color:#0E7C7B;font-weight:700;font-size:20px}
+table{border-collapse:collapse;width:100%;margin-top:14px;font-size:14px}
+th{background:#142B4B;color:#fff;text-align:left;padding:8px}
+td{border-bottom:1px solid #ddd;padding:8px}
+</style></head><body>
+<h1>Strataxis Classifier &mdash; Evaluation Report</h1>
+<p>Build <b>local</b> &middot; 2026-09-03T15:33:11</p>
+<p class="v">PASS &mdash; accuracy 91.67%
+(threshold 85.00%)</p>
+<table><tr><th>ID</th><th>Message</th><th>Expected</th><th>Predicted</th>
+<th>Conf.</th><th>Result</th></tr><tr><td>C-01</td><td>The invoice raised for March shows an overcharge of 40 hours.</td><td>billing_dispute</td><td>billing_dispute</td><td>0.9</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-02</td><td>We have not received the refund against the duplicate payment yet.</td><td>billing_dispute</td><td>billing_dispute</td><td>0.9</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-03</td><td>The client is unhappy about the numbers on the last statement.</td><td>billing_dispute</td><td>other</td><td>0.3</td><td style='color:#B3261E;font-weight:700'>FAIL</td></tr><tr><td>C-04</td><td>Please confirm whether the additional module falls inside the agreed scope.</td><td>scope_change</td><td>scope_change</td><td>0.9</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-05</td><td>We are raising a change request for two extra dashboards.</td><td>scope_change</td><td>scope_change</td><td>0.7</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-06</td><td>The extra deliverable was never part of the original scope of work.</td><td>scope_change</td><td>scope_change</td><td>0.9</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-07</td><td>Where exactly is the personal data of our employees being stored?</td><td>data_privacy</td><td>data_privacy</td><td>0.7</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-08</td><td>Our legal team needs written confirmation of data residency in India.</td><td>data_privacy</td><td>data_privacy</td><td>0.7</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-09</td><td>Has explicit consent been captured before processing this PII?</td><td>data_privacy</td><td>data_privacy</td><td>0.9</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-10</td><td>The integration work has slipped and we are now behind schedule.</td><td>timeline_risk</td><td>timeline_risk</td><td>0.9</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-11</td><td>We may have to postpone the go-live because of the current delay.</td><td>timeline_risk</td><td>timeline_risk</td><td>0.9</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr><tr><td>C-12</td><td>The UAT deadline cannot be met with the present staffing.</td><td>timeline_risk</td><td>timeline_risk</td><td>0.7</td><td style='color:#0E7C7B;font-weight:700'>PASS</td></tr></table>
+</body></html>

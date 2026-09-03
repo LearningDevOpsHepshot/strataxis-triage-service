@@ -1,0 +1,12 @@
+{"id": "C-01", "text": "The invoice raised for March shows an overcharge of 40 hours.", "expected": "billing_dispute"}
+{"id": "C-02", "text": "We have not received the refund against the duplicate payment yet.", "expected": "billing_dispute"}
+{"id": "C-03", "text": "The client is unhappy about the numbers on the last statement.", "expected": "billing_dispute"}
+{"id": "C-04", "text": "Please confirm whether the additional module falls inside the agreed scope.", "expected": "scope_change"}
+{"id": "C-05", "text": "We are raising a change request for two extra dashboards.", "expected": "scope_change"}
+{"id": "C-06", "text": "The extra deliverable was never part of the original scope of work.", "expected": "scope_change"}
+{"id": "C-07", "text": "Where exactly is the personal data of our employees being stored?", "expected": "data_privacy"}
+{"id": "C-08", "text": "Our legal team needs written confirmation of data residency in India.", "expected": "data_privacy"}
+{"id": "C-09", "text": "Has explicit consent been captured before processing this PII?", "expected": "data_privacy"}
+{"id": "C-10", "text": "The integration work has slipped and we are now behind schedule.", "expected": "timeline_risk"}
+{"id": "C-11", "text": "We may have to postpone the go-live because of the current delay.", "expected": "timeline_risk"}
+{"id": "C-12", "text": "The UAT deadline cannot be met with the present staffing.", "expected": "timeline_risk"}

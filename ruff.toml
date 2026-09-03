@@ -1,0 +1,6 @@
+# Pinned lint rules so every machine and the Jenkins agent agree.
+line-length = 100
+target-version = "py311"
+ 
+[lint]
+select = ["E", "F", "W", "I"]
