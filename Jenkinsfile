@@ -27,37 +27,45 @@ pipeline {
         }
 
         stage('2. Environment') {
-            steps {
-                echo 'Finding Python and creating an isolated environment...'
-                bat '''
-                    @echo off
-                    where python.exe >nul 2>&1
-                    if %ERRORLEVEL% EQU 0 (
-                        python.exe -m venv venv
-                        goto :venv_created
-                    )
+    steps {
+        echo 'Checking the configured Python installation...'
 
-                    where py.exe >nul 2>&1
-                    if %ERRORLEVEL% EQU 0 (
-                        py.exe -3 -m venv venv
-                        goto :venv_created
-                    )
+        bat '''
+            @echo off
 
-                    echo ERROR: Jenkins cannot find Python or the Python launcher.
-                    echo Install Python for all users, add it to the system PATH, and restart Jenkins.
-                    exit /b 1
+            if not exist "%SYSTEM_PYTHON%" (
+                echo ERROR: Python was not found at:
+                echo %SYSTEM_PYTHON%
+                exit /b 1
+            )
 
-                    :venv_created
-                    if not exist "%PY%" (
-                        echo ERROR: The Python virtual environment was not created.
-                        exit /b 1
-                    )
-                '''
-                bat '"%PY%" --version'
-                bat '"%PY%" -m pip install --upgrade pip'
-                bat '"%PY%" -m pip install -r requirements.txt'
-            }
-        }
+            echo Python executable found successfully.
+            "%SYSTEM_PYTHON%" --version
+        '''
+
+        echo 'Creating a clean Python virtual environment...'
+
+        bat '"%SYSTEM_PYTHON%" -m venv venv'
+
+        echo 'Confirming that the virtual environment was created...'
+
+        bat '''
+            @echo off
+
+            if not exist "%PY%" (
+                echo ERROR: The virtual environment was not created.
+                exit /b 1
+            )
+
+            "%PY%" --version
+        '''
+
+        echo 'Installing the required Python packages...'
+
+        bat '"%PY%" -m pip install --upgrade pip'
+        bat '"%PY%" -m pip install -r requirements.txt'
+    }
+}
 
         stage('3. Lint') {
             steps {
