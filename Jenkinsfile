@@ -8,12 +8,15 @@ pipeline {
     }
 
     environment {
-        LLM_API_KEY   = credentials('llm-api-key')
+        LLM_API_KEY    = credentials('llm-api-key')
+        SYSTEM_PYTHON  = 'C:\\Users\\riteshindupur\\miniconda3\\python.exe'
         EVAL_THRESHOLD = '0.85'
         PY             = 'venv\\Scripts\\python.exe'
         STAGING        = 'C:\\stx\\staging'
     }
 
+    
+    
     stages {
         stage('1. Checkout') {
             steps {
