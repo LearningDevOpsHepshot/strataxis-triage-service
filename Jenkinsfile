@@ -1,8 +1,3 @@
-"environment {
-  LLM_API_KEY = credentials('llm-api-key')
-}"
-
-
 pipeline {
  
     // 'agent any' = run on any available machine.
