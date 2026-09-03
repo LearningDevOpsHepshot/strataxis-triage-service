@@ -1,27 +1,27 @@
 """Quality gate: measure the AI behaviour of the system against a fixed, labelled set.
- 
+
 Unit tests ask "is the code correct?".
 This script asks "is the model still good enough to ship?".
 It exits with code 1 when accuracy falls below the agreed threshold, which is
 what makes Jenkins mark the build as FAILED and stop the deployment.
 """
- 
+
 import argparse
 import json
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
- 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
- 
+
 from app.classifier import classify  # noqa: E402
- 
+
 ROOT = Path(__file__).resolve().parents[1]
 EVAL_FILE = ROOT / "evals" / "eval_set.jsonl"
 REPORT_DIR = ROOT / "reports"
- 
- 
+
+
 def load_cases():
     cases = []
     with open(EVAL_FILE, encoding="utf-8") as handle:
@@ -30,13 +30,13 @@ def load_cases():
             if line:
                 cases.append(json.loads(line))
     return cases
- 
- 
+
+
 def run(threshold: float) -> int:
     cases = load_cases()
     rows = []
     passed = 0
- 
+
     for case in cases:
         result = classify(case["text"])
         ok = result["label"] == case["expected"]
@@ -51,11 +51,11 @@ def run(threshold: float) -> int:
                 "pass": ok,
             }
         )
- 
+
     total = len(rows)
     accuracy = round(passed / total, 4) if total else 0.0
     verdict = "PASS" if accuracy >= threshold else "FAIL"
- 
+
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     summary = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -72,7 +72,7 @@ def run(threshold: float) -> int:
         json.dumps(summary, indent=2), encoding="utf-8"
     )
     write_html(summary)
- 
+
     print("=" * 62)
     print("  EVALUATION GATE")
     print("=" * 62)
@@ -85,10 +85,10 @@ def run(threshold: float) -> int:
     print(f"  Threshold: {threshold:.2%}")
     print(f"  Verdict  : {verdict}")
     print("=" * 62)
- 
+
     return 0 if verdict == "PASS" else 1
- 
- 
+
+
 def write_html(summary: dict) -> None:
     colour = "#0E7C7B" if summary["verdict"] == "PASS" else "#B3261E"
     body = "".join(
@@ -117,8 +117,8 @@ td{{border-bottom:1px solid #ddd;padding:8px}}
 <th>Conf.</th><th>Result</th></tr>{body}</table>
 </body></html>"""
     (REPORT_DIR / "eval_report.html").write_text(html, encoding="utf-8")
- 
- 
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--threshold", type=float, default=0.85)
