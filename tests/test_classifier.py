@@ -1,4 +1,4 @@
-"""Unit tests: do the individual pieces behave as the engineer intended?"""
+"""Unit tests for the client signal classifier."""
 
 import pytest
 

@@ -1,11 +1,14 @@
-"""HTTP wrapper around the classifier, delivered to the client as a service."""
+"""HTTP wrapper around the classifier delivered as a client service."""
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from app.classifier import classify
 
-app = FastAPI(title="Strataxis Client Signal Classifier", version="1.0.0")
+app = FastAPI(
+    title="Strataxis Client Signal Classifier",
+    version="1.0.0",
+)
 
 
 class Message(BaseModel):

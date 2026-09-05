@@ -1,102 +1,70 @@
 pipeline {
+ 
+    // 'agent any' = run on any available machine.
+    // On your standalone setup, that machine is your own laptop.
     agent any
-
+ 
     options {
-        timestamps()
-        timeout(time: 20, unit: 'MINUTES')
+        timestamps()                       // a clock beside every log line
+        timeout(time: 20, unit: 'MINUTES') // never let a build hang forever
         buildDiscarder(logRotator(numToKeepStr: '20'))
     }
-
+ 
     environment {
-        LLM_API_KEY    = credentials('llm-api-key')
-        SYSTEM_PYTHON  = 'C:\\Users\\riteshindupur\\miniconda3\\python.exe'
-        EVAL_THRESHOLD = '0.85'
-        PY             = 'venv\\Scripts\\python.exe'
-        STAGING        = 'C:\\stx\\staging'
+        EVAL_THRESHOLD = '0.85'                    // the agreed quality bar
+        PY      = 'venv\\Scripts\\python.exe'      // Python inside our venv
+        STAGING = 'C:\\stx\\staging'               // stands in for a server
     }
-
-    
-    
+ 
     stages {
+ 
         stage('1. Checkout') {
             steps {
-                echo 'Using the source revision checked out by Jenkins...'
+                echo 'Fetching the exact commit that triggered this build...'
+                checkout scm
                 bat 'git rev-parse --short HEAD > commit.txt'
                 bat 'type commit.txt'
             }
         }
-
+ 
         stage('2. Environment') {
-    steps {
-        echo 'Checking the configured Python installation...'
-
-        bat '''
-            @echo off
-
-            if not exist "%SYSTEM_PYTHON%" (
-                echo ERROR: Python was not found at:
-                echo %SYSTEM_PYTHON%
-                exit /b 1
-            )
-
-            echo Python executable found successfully.
-            "%SYSTEM_PYTHON%" --version
-        '''
-
-        echo 'Creating a clean Python virtual environment...'
-
-        bat '"%SYSTEM_PYTHON%" -m venv venv'
-
-        echo 'Confirming that the virtual environment was created...'
-
-        bat '''
-            @echo off
-
-            if not exist "%PY%" (
-                echo ERROR: The virtual environment was not created.
-                exit /b 1
-            )
-
-            "%PY%" --version
-        '''
-
-        echo 'Installing the required Python packages...'
-
-        bat '"%PY%" -m pip install --upgrade pip'
-        bat '"%PY%" -m pip install -r requirements.txt'
-    }
-}
-
+            steps {
+                echo 'Building a clean, isolated Python environment...'
+                bat 'python -m venv venv'
+                bat '%PY% -m pip install --upgrade pip'
+                bat '%PY% -m pip install -r requirements.txt'
+            }
+        }
+ 
         stage('3. Lint') {
             steps {
                 echo 'Checking code style and obvious errors...'
-                bat '"%PY%" -m ruff check app tests evals'
+                bat '%PY% -m ruff check app tests evals'
             }
         }
-
+ 
         stage('4. Unit Tests') {
             steps {
                 echo 'Running unit and API smoke tests...'
-                bat 'if not exist reports mkdir reports'
-                bat '"%PY%" -m pytest tests -q --junitxml=reports\\junit.xml'
+                bat '%PY% -m pytest tests -q --junitxml=reports/junit.xml'
             }
         }
-
+ 
         stage('5. Evaluation Gate') {
             steps {
                 echo 'Measuring AI quality against the labelled set...'
-                bat '"%PY%" evals\\run_eval.py --threshold %EVAL_THRESHOLD%'
+                bat '%PY% evals\\run_eval.py --threshold %EVAL_THRESHOLD%'
             }
         }
-
+ 
         stage('6. Package') {
             steps {
                 echo 'Producing a versioned, shippable artifact...'
                 bat 'if not exist dist mkdir dist'
-                bat 'tar -a -c -f dist\\triage-%BUILD_NUMBER%.zip app requirements.txt'
+                bat 'tar -a -c -f dist/triage-%BUILD_NUMBER%.zip app requirements.txt'
             }
         }
-
+ 
         stage('7. Approval') {
             steps {
                 script {
@@ -107,41 +75,34 @@ pipeline {
                 }
             }
         }
-
+ 
         stage('8. Deploy to Staging') {
             steps {
                 echo 'Releasing the approved artifact...'
-                bat 'if not exist "%STAGING%" mkdir "%STAGING%"'
-                bat 'copy /Y "dist\\triage-%BUILD_NUMBER%.zip" "%STAGING%\\"'
-                bat 'echo %DATE% %TIME% build %BUILD_NUMBER% >> "%STAGING%\\log.txt"'
+                bat 'if not exist %STAGING% mkdir %STAGING%'
+                bat 'copy /Y dist\\triage-%BUILD_NUMBER%.zip %STAGING%\\'
+                bat 'echo %DATE% %TIME% build %BUILD_NUMBER% >> %STAGING%\\log.txt'
             }
         }
     }
-
+ 
     post {
         always {
-            junit allowEmptyResults: true,
-                  testResults: 'reports/junit.xml'
-
+            junit allowEmptyResults: true, testResults: 'reports/junit.xml'
             archiveArtifacts artifacts: 'dist/*.zip, reports/*',
-                             allowEmptyArchive: true,
-                             fingerprint: true
-
-            // Re-enable this block after installing the HTML Publisher plugin.
-            // publishHTML(target: [
-            //     reportDir            : 'reports',
-            //     reportFiles          : 'eval_report.html',
-            //     reportName           : 'Evaluation Report',
-            //     keepAll              : true,
-            //     alwaysLinkToLastBuild: true,
-            //     allowMissing         : true
-            // ])
+                             allowEmptyArchive: true, fingerprint: true
+            publishHTML(target: [
+                reportDir            : 'reports',
+                reportFiles          : 'eval_report.html',
+                reportName           : 'Evaluation Report',
+                keepAll              : true,
+                alwaysLinkToLastBuild: true,
+                allowMissing         : true
+            ])
         }
-
         success {
             echo 'GREEN: this commit is safe to show the client.'
         }
-
         failure {
             echo 'RED: something regressed. Nothing was deployed.'
         }

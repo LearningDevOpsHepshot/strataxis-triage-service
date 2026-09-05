@@ -1,9 +1,10 @@
-"""Quality gate: measure the AI behaviour of the system against a fixed, labelled set.
+"""Evaluate the classifier against a fixed, labelled dataset.
 
-Unit tests ask "is the code correct?".
-This script asks "is the model still good enough to ship?".
-It exits with code 1 when accuracy falls below the agreed threshold, which is
-what makes Jenkins mark the build as FAILED and stop the deployment.
+Unit tests ask whether the code works correctly.
+This script asks whether the classifier is good enough to release.
+
+It returns exit code 1 when accuracy is below the required threshold.
+This causes Jenkins to fail the build and stop deployment.
 """
 
 import argparse
@@ -24,11 +25,14 @@ REPORT_DIR = ROOT / "reports"
 
 def load_cases():
     cases = []
+
     with open(EVAL_FILE, encoding="utf-8") as handle:
         for line in handle:
             line = line.strip()
+
             if line:
                 cases.append(json.loads(line))
+
     return cases
 
 
@@ -41,6 +45,7 @@ def run(threshold: float) -> int:
         result = classify(case["text"])
         ok = result["label"] == case["expected"]
         passed += 1 if ok else 0
+
         rows.append(
             {
                 "id": case["id"],
@@ -57,6 +62,7 @@ def run(threshold: float) -> int:
     verdict = "PASS" if accuracy >= threshold else "FAIL"
 
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
+
     summary = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "build": os.environ.get("BUILD_NUMBER", "local"),
@@ -68,20 +74,31 @@ def run(threshold: float) -> int:
         "verdict": verdict,
         "results": rows,
     }
-    (REPORT_DIR / "eval_report.json").write_text(
-        json.dumps(summary, indent=2), encoding="utf-8"
+
+    json_report = REPORT_DIR / "eval_report.json"
+    json_report.write_text(
+        json.dumps(summary, indent=2),
+        encoding="utf-8",
     )
+
     write_html(summary)
 
     print("=" * 62)
     print("  EVALUATION GATE")
     print("=" * 62)
+
     for row in rows:
         mark = "PASS" if row["pass"] else "FAIL"
-        exp, got = row["expected"], row["predicted"]
-        print(f"  [{mark}] {row['id']}  exp={exp:<15} got={got}")
+        expected = row["expected"]
+        predicted = row["predicted"]
+
+        print(
+            f"  [{mark}] {row['id']} "
+            f"exp={expected:<15} got={predicted}"
+        )
+
     print("-" * 62)
-    print(f"  Accuracy : {accuracy:.2%}  ({passed}/{total})")
+    print(f"  Accuracy : {accuracy:.2%} ({passed}/{total})")
     print(f"  Threshold: {threshold:.2%}")
     print(f"  Verdict  : {verdict}")
     print("=" * 62)
@@ -90,37 +107,103 @@ def run(threshold: float) -> int:
 
 
 def write_html(summary: dict) -> None:
-    colour = "#0E7C7B" if summary["verdict"] == "PASS" else "#B3261E"
-    body = "".join(
-        "<tr>"
-        f"<td>{r['id']}</td><td>{r['text']}</td>"
-        f"<td>{r['expected']}</td><td>{r['predicted']}</td>"
-        f"<td>{r['confidence']}</td>"
-        f"<td style='color:{'#0E7C7B' if r['pass'] else '#B3261E'};font-weight:700'>"
-        f"{'PASS' if r['pass'] else 'FAIL'}</td></tr>"
-        for r in summary["results"]
-    )
-    html = f"""<!doctype html><html><head><meta charset="utf-8">
+    pass_colour = "#0E7C7B"
+    fail_colour = "#B3261E"
+
+    if summary["verdict"] == "PASS":
+        verdict_colour = pass_colour
+    else:
+        verdict_colour = fail_colour
+
+    table_rows = []
+
+    for result in summary["results"]:
+        result_text = "PASS" if result["pass"] else "FAIL"
+        result_colour = pass_colour if result["pass"] else fail_colour
+
+        table_rows.append(
+            "<tr>"
+            f"<td>{result['id']}</td>"
+            f"<td>{result['text']}</td>"
+            f"<td>{result['expected']}</td>"
+            f"<td>{result['predicted']}</td>"
+            f"<td>{result['confidence']}</td>"
+            f"<td style='color:{result_colour};font-weight:700'>"
+            f"{result_text}</td>"
+            "</tr>"
+        )
+
+    body = "".join(table_rows)
+
+    html = f"""<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
 <title>Evaluation Report - Build {summary['build']}</title>
 <style>
-body{{font-family:Calibri,Arial,sans-serif;margin:24px;color:#142B4B}}
-h1{{color:#142B4B}} .v{{color:{colour};font-weight:700;font-size:20px}}
-table{{border-collapse:collapse;width:100%;margin-top:14px;font-size:14px}}
-th{{background:#142B4B;color:#fff;text-align:left;padding:8px}}
-td{{border-bottom:1px solid #ddd;padding:8px}}
-</style></head><body>
-<h1>Strataxis Classifier &mdash; Evaluation Report</h1>
-<p>Build <b>{summary['build']}</b> &middot; {summary['generated_at']}</p>
-<p class="v">{summary['verdict']} &mdash; accuracy {summary['accuracy']:.2%}
-(threshold {summary['threshold']:.2%})</p>
-<table><tr><th>ID</th><th>Message</th><th>Expected</th><th>Predicted</th>
-<th>Conf.</th><th>Result</th></tr>{body}</table>
-</body></html>"""
-    (REPORT_DIR / "eval_report.html").write_text(html, encoding="utf-8")
+body {{
+    font-family: Calibri, Arial, sans-serif;
+    margin: 24px;
+    color: #142B4B;
+}}
+h1 {{
+    color: #142B4B;
+}}
+.verdict {{
+    color: {verdict_colour};
+    font-weight: 700;
+    font-size: 20px;
+}}
+table {{
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 14px;
+    font-size: 14px;
+}}
+th {{
+    background: #142B4B;
+    color: #ffffff;
+    text-align: left;
+    padding: 8px;
+}}
+td {{
+    border-bottom: 1px solid #dddddd;
+    padding: 8px;
+}}
+</style>
+</head>
+<body>
+<h1>Strataxis Classifier — Evaluation Report</h1>
+<p>Build <b>{summary['build']}</b> · {summary['generated_at']}</p>
+<p class="verdict">
+{summary['verdict']} — accuracy {summary['accuracy']:.2%}
+(threshold {summary['threshold']:.2%})
+</p>
+<table>
+<tr>
+<th>ID</th>
+<th>Message</th>
+<th>Expected</th>
+<th>Predicted</th>
+<th>Confidence</th>
+<th>Result</th>
+</tr>
+{body}
+</table>
+</body>
+</html>
+"""
+
+    html_report = REPORT_DIR / "eval_report.html"
+    html_report.write_text(html, encoding="utf-8")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--threshold", type=float, default=0.85)
-    args = parser.parse_args()
-    sys.exit(run(args.threshold))
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.85,
+    )
+    arguments = parser.parse_args()
+    sys.exit(run(arguments.threshold))
